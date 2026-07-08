@@ -1,0 +1,16 @@
+[Unit]
+Description=Comparador de Inventario (Rancho Alegre)
+After=network.target
+
+[Service]
+Type=simple
+User=ranchoalegre
+Group=ranchoalegre
+WorkingDirectory=/home/ranchoalegre/comparador-inventario
+ExecStart=/home/ranchoalegre/comparador-inventario/run_production.sh
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
