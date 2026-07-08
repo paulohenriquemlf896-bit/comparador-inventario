@@ -8,7 +8,12 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-python3 -c "
+if [ ! -x venv/bin/python3 ]; then
+    echo "ERRO: venv não encontrado em ./venv. Rode: python3 -m venv venv && venv/bin/pip install -r requirements.txt"
+    exit 1
+fi
+
+venv/bin/python3 -c "
 from waitress import serve
 from app import app
 serve(app, host='0.0.0.0', port=6000)
