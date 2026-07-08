@@ -1,0 +1,614 @@
+/* ========================================
+   SISTEMA DE ÍCONES
+   Ícones consistentes baseados em Unicode/SVG
+   ======================================== */
+
+/* Icon Base Class */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2em;
+    height: 1.2em;
+    flex-shrink: 0;
+}
+
+/* Small Icon */
+.icon-sm {
+    width: 1em;
+    height: 1em;
+    font-size: 0.875rem;
+}
+
+/* Regular Icon */
+.icon-md {
+    width: 1.5em;
+    height: 1.5em;
+    font-size: 1.5rem;
+}
+
+/* Large Icon */
+.icon-lg {
+    width: 2em;
+    height: 2em;
+    font-size: 2rem;
+}
+
+/* Extra Large Icon */
+.icon-xl {
+    width: 2.5em;
+    height: 2.5em;
+    font-size: 2.5rem;
+}
+
+/* ========================================
+   NAVIGATION & MENU ICONS
+   ======================================== */
+
+.icon-home::before {
+    content: "🏠";
+}
+
+.icon-menu::before {
+    content: "☰";
+}
+
+.icon-close::before {
+    content: "✕";
+}
+
+.icon-arrow-left::before {
+    content: "←";
+}
+
+.icon-arrow-right::before {
+    content: "→";
+}
+
+.icon-arrow-up::before {
+    content: "↑";
+}
+
+.icon-arrow-down::before {
+    content: "↓";
+}
+
+.icon-chevron-left::before {
+    content: "‹";
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+.icon-chevron-right::before {
+    content: "›";
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+/* ========================================
+   INTERACTION ICONS
+   ======================================== */
+
+.icon-search::before {
+    content: "🔍";
+}
+
+.icon-filter::before {
+    content: "⊙";
+}
+
+.icon-download::before {
+    content: "↓";
+}
+
+.icon-upload::before {
+    content: "↑";
+}
+
+.icon-refresh::before {
+    content: "↻";
+}
+
+.icon-settings::before {
+    content: "⚙";
+}
+
+.icon-more::before {
+    content: "⋮";
+    font-weight: bold;
+}
+
+.icon-fullscreen::before {
+    content: "⬜";
+}
+
+.icon-minimize::before {
+    content: "⬚";
+}
+
+/* ========================================
+   STATUS ICONS
+   ======================================== */
+
+.icon-check::before {
+    content: "✓";
+    font-weight: bold;
+}
+
+.icon-cross::before {
+    content: "✕";
+    font-weight: bold;
+}
+
+.icon-warning::before {
+    content: "⚠";
+}
+
+.icon-error::before {
+    content: "⛔";
+}
+
+.icon-info::before {
+    content: "ℹ";
+}
+
+.icon-success::before {
+    content: "✓";
+    font-weight: bold;
+}
+
+.icon-pending::before {
+    content: "⏱";
+}
+
+.icon-alert::before {
+    content: "🔔";
+}
+
+/* ========================================
+   USER & ACCOUNT ICONS
+   ======================================== */
+
+.icon-user::before {
+    content: "👤";
+}
+
+.icon-users::before {
+    content: "👥";
+}
+
+.icon-profile::before {
+    content: "👤";
+}
+
+.icon-logout::before {
+    content: "🚪";
+}
+
+.icon-login::before {
+    content: "🔑";
+}
+
+.icon-lock::before {
+    content: "🔒";
+}
+
+.icon-unlock::before {
+    content: "🔓";
+}
+
+/* ========================================
+   FILE & DOCUMENT ICONS
+   ======================================== */
+
+.icon-file::before {
+    content: "📄";
+}
+
+.icon-folder::before {
+    content: "📁";
+}
+
+.icon-excel::before {
+    content: "📊";
+}
+
+.icon-pdf::before {
+    content: "📋";
+}
+
+.icon-image::before {
+    content: "🖼";
+}
+
+.icon-document::before {
+    content: "📃";
+}
+
+.icon-attachment::before {
+    content: "📎";
+}
+
+/* ========================================
+   DATA & ANALYTICS ICONS
+   ======================================== */
+
+.icon-chart::before {
+    content: "📈";
+}
+
+.icon-bar-chart::before {
+    content: "📊";
+}
+
+.icon-pie-chart::before {
+    content: "🥧";
+}
+
+.icon-graph::before {
+    content: "📉";
+}
+
+.icon-database::before {
+    content: "🗄";
+}
+
+.icon-table::before {
+    content: "📋";
+}
+
+.icon-list::before {
+    content: "☰";
+}
+
+.icon-grid::before {
+    content: "⊞";
+}
+
+/* ========================================
+   BUSINESS & INVENTORY ICONS
+   ======================================== */
+
+.icon-inventory::before {
+    content: "📦";
+}
+
+.icon-box::before {
+    content: "📦";
+}
+
+.icon-package::before {
+    content: "📫";
+}
+
+.icon-store::before {
+    content: "🏪";
+}
+
+.icon-building::before {
+    content: "🏢";
+}
+
+.icon-location::before {
+    content: "📍";
+}
+
+.icon-warehouse::before {
+    content: "🏭";
+}
+
+.icon-truck::before {
+    content: "🚚";
+}
+
+/* ========================================
+   COMMUNICATION ICONS
+   ======================================== */
+
+.icon-message::before {
+    content: "💬";
+}
+
+.icon-email::before {
+    content: "✉";
+}
+
+.icon-phone::before {
+    content: "☎";
+}
+
+.icon-chat::before {
+    content: "💭";
+}
+
+.icon-comment::before {
+    content: "💬";
+}
+
+.icon-bell::before {
+    content: "🔔";
+}
+
+/* ========================================
+   UTILITY ICONS
+   ======================================== */
+
+.icon-edit::before {
+    content: "✏";
+}
+
+.icon-delete::before {
+    content: "🗑";
+}
+
+.icon-trash::before {
+    content: "🗑";
+}
+
+.icon-copy::before {
+    content: "📋";
+}
+
+.icon-print::before {
+    content: "🖨";
+}
+
+.icon-share::before {
+    content: "🔗";
+}
+
+.icon-bookmark::before {
+    content: "🔖";
+}
+
+.icon-star::before {
+    content: "★";
+}
+
+.icon-heart::before {
+    content: "♥";
+}
+
+.icon-flag::before {
+    content: "🚩";
+}
+
+/* ========================================
+   COMPARISON SPECIFIC ICONS
+   ======================================== */
+
+.icon-compare::before {
+    content: "⇄";
+    font-weight: bold;
+}
+
+.icon-match::before {
+    content: "✓";
+    font-weight: bold;
+    color: var(--color-success);
+}
+
+.icon-mismatch::before {
+    content: "✕";
+    font-weight: bold;
+    color: var(--color-error);
+}
+
+.icon-equal::before {
+    content: "=";
+    font-weight: bold;
+}
+
+.icon-plus::before {
+    content: "+";
+    font-weight: bold;
+}
+
+.icon-minus::before {
+    content: "−";
+    font-weight: bold;
+}
+
+/* ========================================
+   TIME & DATE ICONS
+   ======================================== */
+
+.icon-calendar::before {
+    content: "📅";
+}
+
+.icon-clock::before {
+    content: "🕐";
+}
+
+.icon-time::before {
+    content: "⏱";
+}
+
+.icon-today::before {
+    content: "📌";
+}
+
+.icon-history::before {
+    content: "⏮";
+}
+
+/* ========================================
+   COLOR VARIANTS
+   ======================================== */
+
+.icon-primary {
+    color: var(--color-primary);
+}
+
+.icon-success {
+    color: var(--color-success);
+}
+
+.icon-error {
+    color: var(--color-error);
+}
+
+.icon-warning {
+    color: var(--color-warning);
+}
+
+.icon-info {
+    color: var(--color-info);
+}
+
+.icon-secondary {
+    color: var(--color-text-secondary);
+}
+
+.icon-muted {
+    color: var(--color-text-tertiary);
+}
+
+/* ========================================
+   ANIMATION MODIFIERS
+   ======================================== */
+
+.icon-spin {
+    animation: spin 1s linear infinite;
+}
+
+.icon-spin-slow {
+    animation: spin 2s linear infinite;
+}
+
+.icon-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.icon-bounce {
+    animation: bounce 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.icon-glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+/* ========================================
+   BADGE ICONS (with circle background)
+   ======================================== */
+
+.icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2em;
+    height: 2em;
+    border-radius: 50%;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.icon-badge.primary {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.icon-badge.success {
+    background-color: var(--color-success);
+    color: white;
+    border-color: var(--color-success);
+}
+
+.icon-badge.error {
+    background-color: var(--color-error);
+    color: white;
+    border-color: var(--color-error);
+}
+
+.icon-badge.warning {
+    background-color: var(--color-warning);
+    color: white;
+    border-color: var(--color-warning);
+}
+
+/* ========================================
+   ICON COMBOS (stacked icons)
+   ======================================== */
+
+.icon-stacked {
+    position: relative;
+    display: inline-flex;
+    width: 2em;
+    height: 2em;
+}
+
+.icon-stacked .icon-base {
+    font-size: 1.5em;
+}
+
+.icon-stacked .icon-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 0.8em;
+    background-color: var(--color-white);
+    border-radius: 50%;
+}
+
+/* ========================================
+   ICON RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .icon-md {
+        width: 1.25em;
+        height: 1.25em;
+        font-size: 1.25rem;
+    }
+
+    .icon-lg {
+        width: 1.75em;
+        height: 1.75em;
+        font-size: 1.75rem;
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.icon[aria-label] {
+    /* Icons with aria-label are screen-reader safe */
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ========================================
+   EXAMPLES OF ICON GROUPING
+   ======================================== */
+
+/* For table actions */
+.icon-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* For status indicators */
+.icon-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+/* For breadcrumb navigation */
+.icon-breadcrumb {
+    margin: 0 var(--spacing-xs);
+    opacity: 0.6;
+}

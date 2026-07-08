@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta - Comparador de Inventário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-toggle.css') }}">
+    <style>
+        /* SIGNUP SPECIFIC STYLES */
+        body {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signup-wrapper {
+            width: 100%;
+            max-width: 480px;
+            padding: var(--spacing-lg);
+        }
+
+        .signup-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow-sm);
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .signup-logo {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+            animation: bounce 1s cubic-bezier(0.4, 0, 0.6, 1);
+        }
+
+        .signup-title {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .signup-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            opacity: 0;
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.15s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.25s; }
+        .form-group:nth-child(5) { animation-delay: 0.3s; }
+
+        .form-group label {
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .form-group label .required {
+            color: var(--color-error);
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            transition: all var(--transition-base);
+            background-color: var(--color-white);
+            color: var(--color-text-primary);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background-color: var(--color-bg-primary);
+        }
+
+        .form-group input::placeholder {
+            color: var(--color-text-tertiary);
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        /* Password Strength Indicator */
+        .password-strength {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+
+        .strength-bar {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background-color: var(--color-border);
+            transition: background-color var(--transition-base);
+        }
+
+        .strength-bar.filled {
+            background-color: var(--color-error);
+        }
+
+        .strength-bar.filled.medium {
+            background-color: var(--color-warning);
+        }
+
+        .strength-bar.filled.strong {
+            background-color: var(--color-success);
+        }
+
+        .strength-text {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+            margin-top: var(--spacing-sm);
+        }
+
+        /* Form Checklist */
+        .form-checklist {
+            background-color: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            font-size: var(--font-size-xs);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .checklist-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .checklist-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition-base);
+        }
+
+        .checklist-item.checked .checklist-icon {
+            background-color: var(--color-success);
+            border-color: var(--color-success);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn-signup {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-sm);
+            opacity: 0;
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation-delay: 0.35s;
+        }
+
+        .btn-signup:hover:not(:disabled) {
+            background-color: var(--color-primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .btn-signup:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-signup:disabled {
+            background-color: var(--color-text-tertiary);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Footer */
+        .signup-footer {
+            text-align: center;
+            border-top: 1px solid var(--color-border);
+            padding-top: var(--spacing-lg);
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+            opacity: 0;
+        }
+
+        .signup-footer-text {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .signup-footer-link {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-semibold);
+            transition: color var(--transition-base);
+        }
+
+        .signup-footer-link:hover {
+            color: var(--color-primary-hover);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+            margin-bottom: var(--spacing-lg);
+            display: none;
+            animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background-color: var(--color-error-light);
+            border-left-color: var(--color-error);
+            color: var(--color-error);
+        }
+
+        .alert-success {
+            background-color: var(--color-success-light);
+            border-left-color: var(--color-success);
+            color: var(--color-success);
+        }
+
+        /* Theme Toggle Position */
+        .signup-theme-toggle {
+            position: fixed;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            z-index: 100;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .signup-wrapper {
+                padding: var(--spacing-md);
+            }
+
+            .signup-card {
+                padding: var(--spacing-xl);
+            }
+
+            .signup-title {
+                font-size: var(--font-size-xl);
+            }
+
+            .signup-theme-toggle {
+                top: var(--spacing-md);
+                right: var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- THEME TOGGLE -->
+    <div class="signup-theme-toggle">
+        <button id="themeToggle" class="theme-toggle" onclick="toggleDarkMode()" title="Ativar modo escuro" aria-label="Alternar tema">
+            <span>🌙</span>
+        </button>
+    </div>
+
+    <div class="signup-wrapper">
+        <div class="signup-card">
+            <!-- HEADER -->
+            <div class="signup-header">
+                <div class="signup-logo">✨</div>
+                <h1 class="signup-title">Criar Conta</h1>
+                <p class="signup-subtitle">Comparador de Inventário</p>
+            </div>
+
+            <!-- ALERTS -->
+            {% if erro %}
+            <div class="alert alert-error show">
+                {{ erro }}
+            </div>
+            {% endif %}
+
+            {% if sucesso %}
+            <div class="alert alert-success show">
+                {{ sucesso }}
+                <br><br>
+                <a href="/login" style="color: inherit; text-decoration: underline;">Clique aqui para fazer login</a>
+            </div>
+            {% endif %}
+
+            <!-- FORM -->
+            <form method="POST" id="signupForm" class="signup-form" onsubmit="return validarForm()">
+                <div class="form-group">
+                    <label for="nome">
+                        Nome Completo
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        placeholder="João Silva"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="username">
+                        Usuário
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="joao.silva"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        Email
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="joao@example.com"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="unidade">
+                        Unidade
+                        <span class="required">*</span>
+                    </label>
+                    <select id="unidade" name="unidade" required>
+                        <option value="">Selecione uma unidade</option>
+                        {% for unidade in unidades %}
+                        <option value="{{ unidade }}">{{ unidade }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">
+                        Senha
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="••••••••"
+                        required
+                        oninput="avaliarForca()"
+                    >
+                    <div class="password-strength" id="passwordStrength" style="display: none;">
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                        <div class="strength-bar"></div>
+                    </div>
+                    <div class="strength-text" id="strengthText"></div>
+
+                    <div class="form-checklist" id="checklist">
+                        <div class="checklist-item" id="check-length">
+                            <span class="checklist-icon">○</span>
+                            <span>Mínimo 8 caracteres</span>
+                        </div>
+                        <div class="checklist-item" id="check-upper">
+                            <span class="checklist-icon">○</span>
+                            <span>Uma letra maiúscula</span>
+                        </div>
+                        <div class="checklist-item" id="check-number">
+                            <span class="checklist-icon">○</span>
+                            <span>Um número</span>
+                        </div>
+                        <div class="checklist-item" id="check-special">
+                            <span class="checklist-icon">○</span>
+                            <span>Um caractere especial (!@#$%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmaSenha">
+                        Confirmar Senha
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="password"
+                        id="confirmaSenha"
+                        placeholder="••••••••"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn-signup" id="submitBtn">
+                    Criar Conta
+                </button>
+            </form>
+
+            <!-- FOOTER -->
+            <div class="signup-footer">
+                <p class="signup-footer-text">
+                    Já tem conta?
+                    <a href="/login" class="signup-footer-link">Faça login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const senhaInput = document.getElementById('senha');
+        const confirmInput = document.getElementById('confirmaSenha');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('signupForm');
+
+        function avaliarForca() {
+            const senha = senhaInput.value;
+            let forca = 0;
+            let texto = '';
+
+            // Validações
+            const temLength = senha.length >= 8;
+            const temMaiuscula = /[A-Z]/.test(senha);
+            const temNumero = /\d/.test(senha);
+            const temEspecial = /[!@#$%^&*(),.?":{}|<>]/.test(senha);
+
+            updateChecklist('check-length', temLength);
+            updateChecklist('check-upper', temMaiuscula);
+            updateChecklist('check-number', temNumero);
+            updateChecklist('check-special', temEspecial);
+
+            if (temLength) forca++;
+            if (temMaiuscula) forca++;
+            if (temNumero) forca++;
+            if (temEspecial) forca++;
+
+            // Mostrar força
+            const strength = document.getElementById('passwordStrength');
+            const bars = strength.querySelectorAll('.strength-bar');
+
+            if (forca === 0 && senha.length > 0) {
+                strength.style.display = 'flex';
+                bars.forEach(b => b.classList.remove('filled', 'medium', 'strong'));
+                texto = 'Muito fraca';
+            } else if (forca <= 1) {
+                strength.style.display = 'flex';
+                bars[0].classList.add('filled');
+                bars[1].classList.remove('filled', 'medium', 'strong');
+                bars[2].classList.remove('filled', 'medium', 'strong');
+                texto = 'Fraca';
+            } else if (forca <= 2) {
+                strength.style.display = 'flex';
+                bars[0].classList.add('filled', 'medium');
+                bars[1].classList.add('filled', 'medium');
+                bars[2].classList.remove('filled', 'medium', 'strong');
+                texto = 'Média';
+            } else if (forca <= 3) {
+                strength.style.display = 'flex';
+                bars[0].classList.add('filled', 'strong');
+                bars[1].classList.add('filled', 'strong');
+                bars[2].classList.add('filled', 'medium');
+                texto = 'Forte';
+            } else {
+                strength.style.display = 'flex';
+                bars.forEach(b => {
+                    b.classList.add('filled', 'strong');
+                });
+                texto = 'Muito forte';
+            }
+
+            document.getElementById('strengthText').textContent = texto;
+        }
+
+        function updateChecklist(id, passou) {
+            const item = document.getElementById(id);
+            if (passou) {
+                item.classList.add('checked');
+            } else {
+                item.classList.remove('checked');
+            }
+        }
+
+        function validarForm() {
+            const nome = document.getElementById('nome').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const unidade = document.getElementById('unidade').value;
+            const senha = senhaInput.value;
+            const confirma = confirmInput.value;
+
+            // Validações básicas
+            if (!nome || nome.length < 3) {
+                showError('Nome deve ter pelo menos 3 caracteres');
+                return false;
+            }
+
+            if (!username || username.length < 3) {
+                showError('Usuário deve ter pelo menos 3 caracteres');
+                return false;
+            }
+
+            if (!unidade) {
+                showError('Selecione uma unidade');
+                return false;
+            }
+
+            if (senha.length < 8) {
+                showError('Senha deve ter pelo menos 8 caracteres');
+                return false;
+            }
+
+            if (!/[A-Z]/.test(senha)) {
+                showError('Senha deve conter uma letra maiúscula');
+                return false;
+            }
+
+            if (!/\d/.test(senha)) {
+                showError('Senha deve conter um número');
+                return false;
+            }
+
+            if (senha !== confirma) {
+                showError('As senhas não conferem');
+                return false;
+            }
+
+            return true;
+        }
+
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-error show';
+            alertDiv.textContent = message;
+            document.querySelector('.signup-card').insertBefore(alertDiv, document.querySelector('.signup-form'));
+
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+
+        // Sincronizar mensagem de confirmação
+        confirmInput.addEventListener('input', function() {
+            if (this.value && this.value !== senhaInput.value) {
+                this.style.borderColor = 'var(--color-error)';
+            } else {
+                this.style.borderColor = 'var(--color-border)';
+            }
+        });
+    </script>
+
+    <!-- THEME MANAGER -->
+    <script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+</body>
+</html>

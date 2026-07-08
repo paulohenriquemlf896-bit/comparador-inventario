@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Inventário - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-toggle.css') }}">
+    <style>
+        /* STYLES ESPECÍFICOS DO LOGIN */
+        body {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: var(--spacing-lg);
+        }
+
+        .login-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .login-logo {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .login-title {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .login-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .form-group label {
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-primary);
+        }
+
+        .form-group input {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            transition: all var(--transition-base);
+            background-color: var(--color-white);
+            color: var(--color-text-primary);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: var(--color-text-tertiary);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-login:hover {
+            background-color: var(--color-primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            background-color: var(--color-text-tertiary);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .login-footer {
+            text-align: center;
+            border-top: 1px solid var(--color-border);
+            padding-top: var(--spacing-lg);
+        }
+
+        .login-footer-text {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .login-footer-link {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-semibold);
+            transition: color var(--transition-base);
+        }
+
+        .login-footer-link:hover {
+            color: var(--color-primary-hover);
+        }
+
+        .alert {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+            margin-bottom: var(--spacing-lg);
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background-color: var(--color-error-light);
+            border-left-color: var(--color-error);
+            color: var(--color-error);
+        }
+
+        /* Theme Toggle Position */
+        .login-theme-toggle {
+            position: fixed;
+            top: var(--spacing-lg);
+            right: var(--spacing-lg);
+            z-index: 100;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: var(--spacing-md);
+            }
+
+            .login-card {
+                padding: var(--spacing-xl);
+            }
+
+            .login-title {
+                font-size: var(--font-size-xl);
+            }
+
+            .login-theme-toggle {
+                top: var(--spacing-md);
+                right: var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- THEME TOGGLE -->
+    <div class="login-theme-toggle">
+        <button id="themeToggle" class="theme-toggle" onclick="toggleDarkMode()" title="Ativar modo escuro" aria-label="Alternar tema">
+            <span>🌙</span>
+        </button>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <!-- HEADER -->
+            <div class="login-header">
+                <div class="login-logo">🔍</div>
+                <h1 class="login-title">Comparador de Inventário</h1>
+                <p class="login-subtitle">Sistema de Análise de Estoque</p>
+            </div>
+
+            <!-- ALERT DE ERRO -->
+            {% if erro %}
+            <div class="alert alert-error show">
+                {{ erro }}
+            </div>
+            {% endif %}
+
+            <!-- FORM -->
+            <form method="POST" id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Digite seu usuário"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input
+                        type="password"
+                        id="senha"
+                        name="senha"
+                        placeholder="Digite sua senha"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Entrar
+                </button>
+            </form>
+
+            <!-- FOOTER -->
+            <div class="login-footer">
+                <p class="login-footer-text">
+                    Não tem conta?
+                    <a href="/signup" class="login-footer-link">Criar conta agora</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Validação básica do formulário
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value.trim();
+            const senha = document.getElementById('senha').value;
+
+            if (!username || !senha) {
+                e.preventDefault();
+                showError('Preencha todos os campos');
+                return false;
+            }
+
+            if (senha.length < 6) {
+                e.preventDefault();
+                showError('A senha deve ter pelo menos 6 caracteres');
+                return false;
+            }
+        });
+
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-error show';
+            alertDiv.textContent = message;
+            document.querySelector('.login-card').insertBefore(alertDiv, document.querySelector('.login-form'));
+
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+    </script>
+
+    <!-- THEME MANAGER -->
+    <script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+</body>
+</html>

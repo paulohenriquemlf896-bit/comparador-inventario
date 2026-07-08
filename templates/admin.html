@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Comparador de Inventário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-toggle.css') }}">
+    <style>
+        /* ADMIN LAYOUT */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--color-bg-primary);
+        }
+
+        .admin-wrapper {
+            display: flex;
+            width: 100%;
+        }
+
+        /* Sidebar Navigation */
+        .admin-sidebar {
+            width: 280px;
+            background-color: var(--color-white);
+            border-right: 1px solid var(--color-border);
+            padding: var(--spacing-lg);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .admin-logo {
+            font-size: 1.5rem;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .admin-logo-icon {
+            font-size: 2rem;
+        }
+
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .admin-nav-item {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--color-text-secondary);
+            transition: all var(--transition-base);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: var(--font-weight-medium);
+            border: 1px solid transparent;
+        }
+
+        .admin-nav-item:hover {
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+            border-color: var(--color-border);
+        }
+
+        .admin-nav-item.active {
+            background-color: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .admin-nav-item-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Main Content */
+        .admin-main {
+            flex: 1;
+            margin-left: 280px;
+            padding: var(--spacing-xl);
+        }
+
+        .admin-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-2xl);
+            padding-bottom: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .admin-title {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+        }
+
+        .admin-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .admin-btn-logout {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--color-error);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: var(--font-weight-semibold);
+            transition: all var(--transition-base);
+        }
+
+        .admin-btn-logout:hover {
+            background-color: var(--color-error-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Stats Grid */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
+        }
+
+        .admin-stat-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .admin-stats .admin-stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .admin-stats .admin-stat-card:nth-child(2) { animation-delay: 0.15s; }
+        .admin-stats .admin-stat-card:nth-child(3) { animation-delay: 0.2s; }
+        .admin-stats .admin-stat-card:nth-child(4) { animation-delay: 0.25s; }
+
+        .admin-stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
+            border-color: var(--color-primary);
+        }
+
+        .admin-stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-stat-value {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+        }
+
+        .admin-stat-change {
+            font-size: var(--font-size-xs);
+            color: var(--color-success);
+            margin-top: var(--spacing-sm);
+        }
+
+        /* Users Table */
+        .admin-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-2xl);
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+        }
+
+        .admin-card-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-card-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+        }
+
+        .admin-card-actions {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .btn-add-user {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: var(--font-weight-semibold);
+            transition: all var(--transition-base);
+        }
+
+        .btn-add-user:hover {
+            background-color: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .admin-card-content {
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table thead {
+            background-color: var(--color-bg-secondary);
+        }
+
+        .admin-table th {
+            padding: var(--spacing-md) var(--spacing-lg);
+            text-align: left;
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-secondary);
+            border-bottom: 1px solid var(--color-border);
+            font-size: var(--font-size-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-table tbody tr {
+            border-bottom: 1px solid var(--color-border);
+            transition: background-color var(--transition-base);
+            animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .admin-table tbody tr:hover {
+            background-color: var(--color-bg-secondary);
+        }
+
+        .admin-table td {
+            padding: var(--spacing-md) var(--spacing-lg);
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        /* User Badges */
+        .user-badge {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-badge.active {
+            background-color: var(--color-success-light);
+            color: var(--color-success);
+        }
+
+        .user-badge.inactive {
+            background-color: var(--color-error-light);
+            color: var(--color-error);
+        }
+
+        .user-badge.role-admin {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--color-border);
+            transition: all var(--transition-base);
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: all var(--transition-base);
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--color-success);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Action Buttons */
+        .action-btns {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .btn-action {
+            padding: 4px 8px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            transition: all var(--transition-base);
+        }
+
+        .btn-edit {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+        }
+
+        .btn-edit:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: var(--color-error-light);
+            color: var(--color-error);
+        }
+
+        .btn-delete:hover {
+            background-color: var(--color-error);
+            color: white;
+        }
+
+        .btn-toggle {
+            background-color: var(--color-warning-light);
+            color: var(--color-warning);
+        }
+
+        .btn-toggle:hover {
+            background-color: var(--color-warning);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-2xl);
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .empty-state-text {
+            font-size: var(--font-size-sm);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            max-width: 500px;
+            max-height: 90vh;
+            width: 90%;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-header {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            transition: color var(--transition-base);
+        }
+
+        .modal-close:hover {
+            color: var(--color-text-primary);
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+            margin-bottom: var(--spacing-lg);
+            display: none;
+            animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background-color: var(--color-success-light);
+            border-left-color: var(--color-success);
+            color: var(--color-success);
+        }
+
+        .alert-error {
+            background-color: var(--color-error-light);
+            border-left-color: var(--color-error);
+            color: var(--color-error);
+        }
+
+        /* Analytics, activities and settings */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .metric-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .metric-heading {
+            display: flex;
+            justify-content: space-between;
+            gap: var(--spacing-md);
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .metric-track {
+            height: 10px;
+            margin: var(--spacing-xs) 0;
+            overflow: hidden;
+            border-radius: var(--radius-full);
+            background-color: var(--color-bg-tertiary);
+        }
+
+        .metric-fill {
+            height: 100%;
+            min-width: 2px;
+            border-radius: inherit;
+            background-color: var(--color-primary);
+            transition: width var(--transition-slow);
+        }
+
+        .metric-detail,
+        .form-help {
+            color: var(--color-text-tertiary);
+            font-size: var(--font-size-xs);
+        }
+
+        .activity-type {
+            display: inline-flex;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-full);
+            color: var(--color-primary);
+            background-color: var(--color-primary-light);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .settings-form {
+            max-width: 780px;
+            padding: var(--spacing-lg);
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .settings-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: var(--spacing-xl);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .checkbox-row input {
+            width: auto;
+        }
+
+        .checkbox-row label {
+            margin: 0;
+        }
+
+        .loading-state {
+            padding: var(--spacing-xl);
+            color: var(--color-text-secondary);
+            text-align: center;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .admin-wrapper {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--color-border);
+                padding: var(--spacing-md);
+            }
+
+            .admin-main {
+                margin-left: 0;
+                padding: var(--spacing-lg);
+            }
+
+            .admin-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .admin-table {
+                font-size: var(--font-size-xs);
+            }
+
+            .admin-table th,
+            .admin-table td {
+                padding: var(--spacing-sm);
+            }
+
+            .action-btns {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-title {
+                font-size: var(--font-size-xl);
+            }
+
+            .admin-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                padding: var(--spacing-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- SIDEBAR -->
+        <div class="admin-sidebar">
+            <div class="admin-logo">
+                <span class="admin-logo-icon">⚙️</span>
+                <span>Admin</span>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="/dashboard" class="admin-nav-item">
+                    <span class="admin-nav-item-icon">🔍</span>
+                    <span>Voltar ao Dashboard</span>
+                </a>
+                <hr style="margin: var(--spacing-lg) 0; border: none; border-top: 1px solid var(--color-border);">
+                <a href="#" class="admin-nav-item active" onclick="showSection('users', this); return false;">
+                    <span class="admin-nav-item-icon">👥</span>
+                    <span>Usuários</span>
+                </a>
+                <a href="#" class="admin-nav-item" onclick="showSection('stats', this); return false;">
+                    <span class="admin-nav-item-icon">📊</span>
+                    <span>Estatísticas</span>
+                </a>
+                <a href="#" class="admin-nav-item" onclick="showSection('logs', this); return false;">
+                    <span class="admin-nav-item-icon">📝</span>
+                    <span>Logs do Sistema</span>
+                </a>
+                <a href="#" class="admin-nav-item" onclick="showSection('settings', this); return false;">
+                    <span class="admin-nav-item-icon">⚡</span>
+                    <span>Configurações</span>
+                </a>
+                <hr style="margin: var(--spacing-lg) 0; border: none; border-top: 1px solid var(--color-border);">
+                <a href="/logout" class="admin-nav-item" style="color: var(--color-error);">
+                    <span class="admin-nav-item-icon">🚪</span>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="admin-main">
+            <!-- TOPBAR -->
+            <div class="admin-topbar">
+                <h1 class="admin-title">Painel Administrativo</h1>
+                <div class="admin-topbar-right">
+                    <button id="themeToggle" class="theme-toggle" onclick="toggleDarkMode()" title="Ativar modo escuro" aria-label="Alternar tema" style="margin-right: var(--spacing-md);">
+                        <span>🌙</span>
+                    </button>
+                    <span style="color: var(--color-text-secondary);">{{ usuario }}</span>
+                </div>
+            </div>
+
+            <!-- ALERTS -->
+            {% if mensagem %}
+            <div class="alert alert-success show">
+                {{ mensagem }}
+            </div>
+            {% endif %}
+
+            {% if erro %}
+            <div class="alert alert-error show">
+                {{ erro }}
+            </div>
+            {% endif %}
+            <div id="adminSuccess" class="alert alert-success"></div>
+            <div id="adminError" class="alert alert-error"></div>
+
+            <!-- USERS SECTION -->
+            <div id="users-section">
+                <!-- STATS -->
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Total de Usuários</div>
+                        <div class="admin-stat-value" id="totalUsers">-</div>
+                        <div class="admin-stat-change" id="usersWeek">Carregando...</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Usuários Ativos</div>
+                        <div class="admin-stat-value" id="activeUsers">-</div>
+                        <div class="admin-stat-change" id="activeUsersPercent">Carregando...</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Comparações Totais</div>
+                        <div class="admin-stat-value" id="totalComparisonsAdmin">{{ total_comparacoes }}</div>
+                        <div class="admin-stat-change" id="comparisonsMonth">Carregando...</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Alertas</div>
+                        <div class="admin-stat-value" id="totalAlertsAdmin">{{ total_alertas }}</div>
+                        <div class="admin-stat-change" id="unreadAlerts">Carregando...</div>
+                    </div>
+                </div>
+
+                <!-- USERS TABLE -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2 class="admin-card-title">Gerenciar Usuários</h2>
+                        <div class="admin-card-actions">
+                            <button class="btn-add-user" onclick="openAddUserModal()">+ Novo Usuário</button>
+                        </div>
+                    </div>
+                    <div class="admin-card-content">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuário</th>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Unidade</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATS SECTION -->
+            <div id="stats-section" style="display: none;">
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Comparações</div>
+                        <div class="admin-stat-value" id="statsComparisons">-</div>
+                        <div class="admin-stat-change">Total processado</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Itens analisados</div>
+                        <div class="admin-stat-value" id="statsItems">-</div>
+                        <div class="admin-stat-change">Em todas as unidades</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Acuracidade</div>
+                        <div class="admin-stat-value" id="statsAccuracy">-</div>
+                        <div class="admin-stat-change">Média geral</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-label">Divergências</div>
+                        <div class="admin-stat-value" id="statsDifferences">-</div>
+                        <div class="admin-stat-change">Diferenças e ausências</div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2 class="admin-card-title">Acuracidade por Unidade</h2>
+                        </div>
+                        <div id="unitStats" class="metric-list">
+                            <div class="loading-state">Carregando estatísticas...</div>
+                        </div>
+                    </div>
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2 class="admin-card-title">Comparações nos Últimos 14 Dias</h2>
+                        </div>
+                        <div id="dailyStats" class="metric-list">
+                            <div class="loading-state">Carregando estatísticas...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOGS SECTION -->
+            <div id="logs-section" style="display: none;">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2 class="admin-card-title">Logs e Atividades</h2>
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="loadActivities()">Atualizar</button>
+                    </div>
+                    <div class="admin-card-content">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Usuário</th>
+                                    <th>Unidade</th>
+                                    <th>Atividade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activitiesTableBody">
+                                <tr><td colspan="5" class="loading-state">Carregando atividades...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS SECTION -->
+            <div id="settings-section" style="display: none;">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h2 class="admin-card-title">Configurações do Sistema</h2>
+                    </div>
+                    <div class="admin-card-content">
+                        <form id="settingsForm" class="settings-form">
+                            <div class="settings-grid">
+                                <div class="form-group">
+                                    <label for="criticalThreshold">Alerta crítico (%)</label>
+                                    <input type="number" id="criticalThreshold" min="0" max="99" step="0.1" required>
+                                    <span class="form-help">Acuracidade abaixo deste valor gera alerta crítico.</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="warningThreshold">Alerta de aviso (%)</label>
+                                    <input type="number" id="warningThreshold" min="1" max="100" step="0.1" required>
+                                    <span class="form-help">Deve ser maior que o limite crítico.</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="historyLimit">Comparações no histórico</label>
+                                    <input type="number" id="historyLimit" min="5" max="100" step="1" required>
+                                    <span class="form-help">Quantidade exibida no histórico do dashboard.</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="resultsLimit">Itens exibidos na tela</label>
+                                    <input type="number" id="resultsLimit" min="100" max="5000" step="100" required>
+                                    <span class="form-help">O relatório Excel continua contendo todos os itens.</span>
+                                </div>
+                            </div>
+                            <div class="settings-actions">
+                                <button class="btn btn-primary" type="submit">Salvar Configurações</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD USER MODAL -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Adicionar Novo Usuário</span>
+                <button class="modal-close" onclick="closeAddUserModal()">&times;</button>
+            </div>
+            <form method="POST" action="/api/admin/adicionar-usuario" class="modal-form" id="addUserForm">
+                <div class="form-group">
+                    <label for="newUsername">Usuário</label>
+                    <input type="text" id="newUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="newNome">Nome Completo</label>
+                    <input type="text" id="newNome" name="nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="newEmail">Email</label>
+                    <input type="email" id="newEmail" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="newUnidade">Unidade</label>
+                    <select id="newUnidade" name="unidade" required>
+                        <option value="">Selecione uma unidade</option>
+                        {% for unidade in unidades %}
+                        <option value="{{ unidade }}">{{ unidade }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="newSenha">Senha Temporária</label>
+                    <input type="password" id="newSenha" name="senha" required>
+                </div>
+                <button type="submit" class="btn-add-user" style="width: 100%;">Criar Usuário</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT USER MODAL -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Editar Usuário</span>
+                <button class="modal-close" type="button" onclick="closeEditUserModal()">&times;</button>
+            </div>
+            <form class="modal-form" id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUsername">Usuário</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="editNome">Nome Completo</label>
+                    <input type="text" id="editNome" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail">
+                </div>
+                <div class="form-group">
+                    <label for="editUnidade">Unidade</label>
+                    <select id="editUnidade" required>
+                        {% for unidade in unidades %}
+                        <option value="{{ unidade }}">{{ unidade }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editSenha">Nova senha</label>
+                    <input type="password" id="editSenha" autocomplete="new-password">
+                    <span class="form-help">Deixe em branco para manter a senha atual.</span>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="editAdmin">
+                    <label for="editAdmin">Permissão de administrador</label>
+                </div>
+                <button type="submit" class="btn-add-user" style="width: 100%;">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Carregar usuários via API (seguro contra XSS)
+        let users = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            })[char]);
+        }
+
+        function showAdminMessage(message, type = 'success') {
+            const success = document.getElementById('adminSuccess');
+            const error = document.getElementById('adminError');
+            success.classList.remove('show');
+            error.classList.remove('show');
+            const target = type === 'error' ? error : success;
+            target.textContent = message;
+            target.classList.add('show');
+            setTimeout(() => target.classList.remove('show'), 5000);
+        }
+
+        async function fetchUsers() {
+            try {
+                const response = await fetch('/api/usuarios');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao carregar usuários');
+                users = data;
+                loadUsers();
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                showAdminMessage(error.message, 'error');
+            }
+        }
+
+        function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">Nenhum usuário cadastrado</div></div></td></tr>';
+                return;
+            }
+
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.style.animationDelay = `${index * 0.05}s`;
+                row.innerHTML = `
+                    <td>
+                        <strong>${escapeHtml(user.username)}</strong>
+                        ${user.admin ? '<span class="user-badge role-admin">Admin</span>' : ''}
+                    </td>
+                    <td>${escapeHtml(user.nome || '-')}</td>
+                    <td>${escapeHtml(user.email || '-')}</td>
+                    <td>${escapeHtml(user.unidade || '-')}</td>
+                    <td>
+                        <span class="user-badge ${user.ativo ? 'active' : 'inactive'}">
+                            ${user.ativo ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-action btn-edit" onclick="editUser(${index})">Editar</button>
+                            <button class="btn-action btn-toggle" onclick="toggleUser(${index})">${user.ativo ? 'Desativar' : 'Ativar'}</button>
+                            <button class="btn-action btn-delete" onclick="deleteUser(${index})">Excluir</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Atualizar stats
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('activeUsers').textContent = users.filter(u => u.ativo).length;
+        }
+
+        function showSection(section, link) {
+            // Hide all sections
+            document.getElementById('users-section').style.display = 'none';
+            document.getElementById('stats-section').style.display = 'none';
+            document.getElementById('logs-section').style.display = 'none';
+            document.getElementById('settings-section').style.display = 'none';
+
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+
+            // Update nav items
+            document.querySelectorAll('.admin-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            link.classList.add('active');
+
+            if (section === 'stats') loadAdminStats();
+            if (section === 'logs') loadActivities();
+            if (section === 'settings') loadSettings();
+        }
+
+        function openAddUserModal() {
+            document.getElementById('addUserModal').classList.add('show');
+        }
+
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').classList.remove('show');
+        }
+
+        function editUser(index) {
+            const user = users[index];
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUsername').value = user.username || '';
+            document.getElementById('editNome').value = user.nome || '';
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editUnidade').value = user.unidade || '';
+            document.getElementById('editSenha').value = '';
+            document.getElementById('editAdmin').checked = Boolean(user.admin);
+            document.getElementById('editUserModal').classList.add('show');
+        }
+
+        function closeEditUserModal() {
+            document.getElementById('editUserModal').classList.remove('show');
+        }
+
+        async function toggleUser(index) {
+            const user = users[index];
+            const acao = user.ativo ? 'desativar' : 'ativar';
+            if (!confirm(`Tem certeza que deseja ${acao} o usuário ${user.username}?`)) return;
+
+            try {
+                const response = await fetch(`/api/usuario/${user.id}/toggle`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || `Erro ao ${acao} usuário`);
+                await fetchUsers();
+                showAdminMessage(`Usuário ${acao === 'ativar' ? 'ativado' : 'desativado'} com sucesso.`);
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        }
+
+        async function deleteUser(index) {
+            const user = users[index];
+            if (!confirm(`Tem certeza que deseja excluir permanentemente o usuário ${user.username}? Essa ação não pode ser desfeita.`)) return;
+
+            try {
+                const response = await fetch(`/api/usuario/${user.id}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao excluir usuário');
+                await fetchUsers();
+                showAdminMessage('Usuário excluído com sucesso.');
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        }
+
+        document.getElementById('addUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: new FormData(this)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao criar usuário');
+
+                this.reset();
+                closeAddUserModal();
+                await fetchUsers();
+                showAdminMessage(data.mensagem || 'Usuário criado com sucesso.');
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        });
+
+        document.getElementById('editUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editUserId').value;
+            const payload = {
+                username: document.getElementById('editUsername').value.trim(),
+                nome: document.getElementById('editNome').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
+                unidade: document.getElementById('editUnidade').value,
+                senha: document.getElementById('editSenha').value,
+                admin: document.getElementById('editAdmin').checked
+            };
+
+            try {
+                const response = await fetch(`/api/usuario/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao editar usuário');
+
+                closeEditUserModal();
+                await fetchUsers();
+                await loadAdminStats();
+                showAdminMessage(data.mensagem || 'Usuário atualizado com sucesso.');
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        });
+
+        const numberFormatter = new Intl.NumberFormat('pt-BR');
+
+        function formatNumber(value) {
+            return numberFormatter.format(Number(value) || 0);
+        }
+
+        async function loadAdminStats() {
+            try {
+                const response = await fetch('/api/admin/estatisticas');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao carregar estatísticas');
+
+                const resumo = data.resumo;
+                document.getElementById('totalUsers').textContent = formatNumber(resumo.usuarios);
+                document.getElementById('activeUsers').textContent = formatNumber(resumo.usuarios_ativos);
+                document.getElementById('usersWeek').textContent = `${formatNumber(resumo.usuarios_novos_semana)} novo(s) esta semana`;
+                const percentualAtivos = resumo.usuarios ? (resumo.usuarios_ativos / resumo.usuarios * 100) : 0;
+                document.getElementById('activeUsersPercent').textContent = `${percentualAtivos.toFixed(1)}% do total`;
+                document.getElementById('totalComparisonsAdmin').textContent = formatNumber(resumo.comparacoes);
+                document.getElementById('comparisonsMonth').textContent = `${formatNumber(resumo.comparacoes_30_dias)} nos últimos 30 dias`;
+                document.getElementById('totalAlertsAdmin').textContent = formatNumber(resumo.alertas);
+                document.getElementById('unreadAlerts').textContent = `${formatNumber(resumo.alertas_nao_lidos)} não lido(s)`;
+
+                document.getElementById('statsComparisons').textContent = formatNumber(resumo.comparacoes);
+                document.getElementById('statsItems').textContent = formatNumber(resumo.total_itens);
+                document.getElementById('statsAccuracy').textContent = `${Number(resumo.acuracidade).toFixed(2)}%`;
+                document.getElementById('statsDifferences').textContent = formatNumber(resumo.divergencias);
+
+                renderUnitStats(data.por_unidade || []);
+                renderDailyStats(data.por_dia || []);
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        }
+
+        function renderUnitStats(rows) {
+            const container = document.getElementById('unitStats');
+            if (!rows.length) {
+                container.innerHTML = '<div class="empty-state">Nenhuma comparação cadastrada.</div>';
+                return;
+            }
+
+            container.innerHTML = rows.map(row => {
+                const accuracy = Math.min(100, Math.max(0, Number(row.acuracidade) || 0));
+                return `
+                    <div>
+                        <div class="metric-heading">
+                            <strong>${escapeHtml(row.unidade)}</strong>
+                            <span>${accuracy.toFixed(2)}%</span>
+                        </div>
+                        <div class="metric-track">
+                            <div class="metric-fill" style="width: ${accuracy}%"></div>
+                        </div>
+                        <div class="metric-detail">
+                            ${formatNumber(row.comparacoes)} comparação(ões) ·
+                            ${formatNumber(row.total_itens)} itens ·
+                            ${formatNumber(row.divergencias)} divergência(s)
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderDailyStats(rows) {
+            const container = document.getElementById('dailyStats');
+            if (!rows.length) {
+                container.innerHTML = '<div class="empty-state">Nenhuma comparação nos últimos 14 dias.</div>';
+                return;
+            }
+
+            const maxComparisons = Math.max(...rows.map(row => Number(row.comparacoes) || 0), 1);
+            container.innerHTML = rows.map(row => {
+                const width = (Number(row.comparacoes) || 0) / maxComparisons * 100;
+                const date = new Date(`${row.data}T00:00:00`).toLocaleDateString('pt-BR');
+                return `
+                    <div>
+                        <div class="metric-heading">
+                            <strong>${date}</strong>
+                            <span>${formatNumber(row.comparacoes)}</span>
+                        </div>
+                        <div class="metric-track">
+                            <div class="metric-fill" style="width: ${width}%"></div>
+                        </div>
+                        <div class="metric-detail">${formatNumber(row.itens)} itens processados</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadActivities() {
+            const tbody = document.getElementById('activitiesTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="loading-state">Carregando atividades...</td></tr>';
+
+            try {
+                const response = await fetch('/api/admin/atividades');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao carregar atividades');
+
+                if (!data.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhuma atividade registrada.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(item => {
+                    const date = new Date(String(item.data).replace(' ', 'T')).toLocaleString('pt-BR');
+                    const type = String(item.tipo || '').replaceAll('_', ' ');
+                    return `
+                        <tr>
+                            <td>${escapeHtml(date)}</td>
+                            <td><span class="activity-type">${escapeHtml(type)}</span></td>
+                            <td>${escapeHtml(item.usuario)}</td>
+                            <td>${escapeHtml(item.unidade)}</td>
+                            <td>${escapeHtml(item.mensagem)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state">${escapeHtml(error.message)}</td></tr>`;
+                showAdminMessage(error.message, 'error');
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/admin/configuracoes');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao carregar configurações');
+
+                document.getElementById('criticalThreshold').value = data.limiar_alerta_critico;
+                document.getElementById('warningThreshold').value = data.limiar_alerta_aviso;
+                document.getElementById('historyLimit').value = data.limite_historico;
+                document.getElementById('resultsLimit').value = data.limite_resultados;
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                limiar_alerta_critico: document.getElementById('criticalThreshold').value,
+                limiar_alerta_aviso: document.getElementById('warningThreshold').value,
+                limite_historico: document.getElementById('historyLimit').value,
+                limite_resultados: document.getElementById('resultsLimit').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/configuracoes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao salvar configurações');
+                showAdminMessage(data.mensagem || 'Configurações salvas com sucesso.');
+            } catch (error) {
+                showAdminMessage(error.message, 'error');
+            }
+        });
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('show');
+            });
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeAddUserModal();
+                closeEditUserModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchUsers();
+            loadAdminStats();
+        });
+    </script>
+
+    <!-- THEME MANAGER -->
+    <script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+</body>
+</html>

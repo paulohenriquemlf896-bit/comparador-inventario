@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Comparador de Inventário</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-toggle.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        /* DASHBOARD SPECIFIC STYLES */
+
+        /* Topbar */
+        .topbar {
+            background-color: var(--color-white);
+            border-bottom: 1px solid var(--color-border);
+            padding: var(--spacing-md) var(--spacing-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: var(--spacing-lg);
+        }
+
+        .topbar-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+        }
+
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .user-role {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-tertiary);
+        }
+
+        .btn-logout {
+            padding: var(--spacing-xs) var(--spacing-md);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--spacing-2xl) var(--spacing-lg);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+            flex-wrap: wrap;
+        }
+
+        .toolbar-title {
+            flex: 1;
+        }
+
+        .toolbar-title h1 {
+            margin: 0;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+        }
+
+        .unit-selector {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background-color: var(--color-white);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        /* Sections */
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .section-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid var(--color-border-light);
+        }
+
+        /* Upload Area */
+        .upload-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .upload-box {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            transition: all var(--transition-base);
+            cursor: pointer;
+            background-color: var(--color-bg-primary);
+        }
+
+        .upload-box:hover {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary-light);
+        }
+
+        .upload-box.drag-over {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary-light);
+        }
+
+        .upload-box input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+            display: block;
+        }
+
+        .upload-title {
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .upload-text {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+        }
+
+        .file-selected {
+            color: var(--color-success);
+            font-weight: var(--font-weight-semibold);
+            font-size: var(--font-size-xs);
+            margin-top: var(--spacing-sm);
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: center;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: var(--spacing-xl);
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: var(--spacing-md);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* Tabs for Results */
+        .results-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: var(--spacing-lg);
+            gap: var(--spacing-lg);
+        }
+
+        .tab-button {
+            padding: var(--spacing-md);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            transition: all var(--transition-base);
+        }
+
+        .tab-button.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-button:hover:not(.active) {
+            color: var(--color-text-primary);
+        }
+
+        /* Table Wrapper */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            background-color: var(--color-white);
+        }
+
+        .comparison-table th.sortable {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            transition: color var(--transition-fast), background-color var(--transition-fast);
+        }
+
+        /* Destaca as colunas de diferença (Qtd/Valor), separando-as do restante */
+        .comparison-table th:nth-child(8),
+        .comparison-table td:nth-child(8) {
+            border-left: 2px solid var(--color-border);
+        }
+
+        .comparison-table td:nth-child(8),
+        .comparison-table td:nth-child(9) {
+            background-color: var(--color-bg-secondary);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+        }
+
+        .comparison-table tbody tr:hover td:nth-child(8),
+        .comparison-table tbody tr:hover td:nth-child(9) {
+            background-color: var(--color-bg-primary);
+        }
+
+        .comparison-table th.sortable:hover,
+        .comparison-table th.sortable:focus-visible {
+            color: var(--color-primary);
+            background-color: var(--color-primary-light);
+            outline: none;
+        }
+
+        .comparison-table th.sortable::after {
+            content: " ↕";
+            color: var(--color-text-tertiary);
+            font-size: var(--font-size-xs);
+        }
+
+        .comparison-table th.sortable[aria-sort="ascending"]::after {
+            content: " ↑";
+            color: var(--color-primary);
+        }
+
+        .comparison-table th.sortable[aria-sort="descending"]::after {
+            content: " ↓";
+            color: var(--color-primary);
+        }
+
+        /* Filters */
+        .filters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--spacing-md);
+            padding: var(--spacing-lg);
+            background-color: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .filter-label {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+        }
+
+        .filter-input {
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Messages */
+        .alert {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+            margin-bottom: var(--spacing-lg);
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background-color: var(--color-success-light);
+            border-left-color: var(--color-success);
+            color: var(--color-success);
+        }
+
+        .alert-error {
+            background-color: var(--color-error-light);
+            border-left-color: var(--color-error);
+            color: var(--color-error);
+        }
+
+        /* Download Buttons */
+        .download-container {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .download-container .btn {
+            flex: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-container {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .toolbar-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .unit-selector {
+                width: 100%;
+            }
+
+            .topbar-content {
+                flex-direction: column;
+                gap: var(--spacing-md);
+            }
+
+            .topbar-user {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: var(--spacing-sm);
+            }
+
+            .download-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-content">
+            <div class="topbar-logo">
+                🔍 Comparador
+            </div>
+            <div class="topbar-user">
+                <button id="themeToggle" class="theme-toggle" onclick="toggleDarkMode()" title="Ativar modo escuro" aria-label="Alternar tema" style="margin-right: var(--spacing-md);">
+                    <span>🌙</span>
+                </button>
+                <div class="user-info">
+                    <div class="user-name" id="nomeUsuario">{{ session.nome }}</div>
+                    <div class="user-role">{{ session.unidade }}</div>
+                </div>
+                <a href="/logout" class="btn btn-secondary btn-sm">Logout</a>
+                {% if session.get('is_admin') %}
+                <a href="/admin" class="btn btn-secondary btn-sm" id="adminBtn">⚙️ Admin</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="toolbar-title">
+                <h1>Dashboard</h1>
+            </div>
+            <div class="toolbar-actions">
+                <select id="unidadeSelect" class="unit-selector">
+                    <option value="" selected>Todas as Unidades</option>
+                    {% for unidade in unidades %}
+                    <option value="{{ unidade }}">{{ unidade }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- ALERTS -->
+        <div id="errorMessage" class="alert alert-error"></div>
+        <div id="successMessage" class="alert alert-success"></div>
+
+        <!-- STATS GRID -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total de Comparações</div>
+                    <div class="stat-value" id="totalComparacoes">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #ecfdf5; color: #10b981;">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Itens Iguais</div>
+                    <div class="stat-value" id="totalIguais">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #fef2f2; color: #ef4444;">❌</div>
+                <div class="stat-content">
+                    <div class="stat-label">Itens com Diferença</div>
+                    <div class="stat-value" id="totalDiferentes">0</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background-color: #eff6ff; color: #3b82f6;">📈</div>
+                <div class="stat-content">
+                    <div class="stat-label">Taxa de Acurácia</div>
+                    <div class="stat-value" id="taxaMedia">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOVA COMPARAÇÃO SECTION -->
+        <div class="section card">
+            <h2 class="section-title">Nova Comparação</h2>
+
+            <div class="upload-container">
+                <div class="upload-box" onclick="document.getElementById('inventarioInput').click()">
+                    <span class="upload-icon">📊</span>
+                    <div class="upload-title">Inventário Fiscal</div>
+                    <div class="upload-text">Clique ou arraste</div>
+                    <div class="file-selected" id="inventarioSelected"></div>
+                    <input type="file" id="inventarioInput" accept=".xlsx,.xls">
+                </div>
+
+                <div class="upload-box" onclick="document.getElementById('posicaoInput').click()">
+                    <span class="upload-icon">📈</span>
+                    <div class="upload-title">Posição Diária</div>
+                    <div class="upload-text">Clique ou arraste</div>
+                    <div class="file-selected" id="posicaoSelected"></div>
+                    <input type="file" id="posicaoInput" accept=".xlsx,.xls">
+                </div>
+            </div>
+
+            <div class="upload-actions">
+                <button class="btn btn-primary" id="compararBtn">Comparar Arquivos</button>
+                <button class="btn btn-secondary" id="limparBtn">Limpar</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processando arquivos...</p>
+            </div>
+        </div>
+
+        <!-- RESULTADOS SECTION -->
+        <div id="resultsSection" style="display: none; margin-top: var(--spacing-2xl);">
+            <!-- Stats de Resultados -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total de Itens</div>
+                        <div class="stat-value" id="resultTotal">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #ecfdf5; color: #10b981;">✅</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Iguais</div>
+                        <div class="stat-value" id="resultIguais">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #fef2f2; color: #ef4444;">❌</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Diferenças</div>
+                        <div class="stat-value" id="resultDiferentes">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #eff6ff; color: #3b82f6;">📈</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Acurácia</div>
+                        <div class="stat-value" id="resultTaxa">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="download-container">
+                <button class="btn btn-primary" id="downloadBtn">📥 Download Excel</button>
+                <button class="btn btn-primary" id="downloadPdfBtn">📄 Download PDF</button>
+            </div>
+
+            <!-- Gráfico -->
+            <div class="section card">
+                <h2 class="section-title">Resumo Estatístico</h2>
+                <div class="chart-container">
+                    <canvas id="chartResumo"></canvas>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="section card">
+                <h2 class="section-title">Filtros Avançados</h2>
+                <div class="filters-container">
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select id="filtroStatus" class="filter-input">
+                            <option value="">Todos</option>
+                            <option value="OK">OK</option>
+                            <option value="DIFERENCA">Diferença</option>
+                            <option value="FALTA NO INVENTARIO">Falta no Inventário</option>
+                            <option value="FALTA NA POSICAO">Falta na Posição</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label" for="filtroDescricao">Descrição do produto</label>
+                        <input type="search" id="filtroDescricao" class="filter-input" placeholder="Digite o nome ou parte da descrição">
+                    </div>
+                    <div class="filter-group" style="justify-content: flex-end;">
+                        <button class="btn btn-primary" onclick="aplicarFiltros()" style="width: 100%;">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela -->
+            <div class="section card">
+                <h2 class="section-title">Detalhes da Comparação</h2>
+                <div class="table-wrapper">
+                    <table class="comparison-table" id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-field="Codigo" data-type="text" tabindex="0" aria-sort="none">Código</th>
+                                <th class="sortable" data-field="Descricao" data-type="text" tabindex="0" aria-sort="none">Descrição</th>
+                                <th class="sortable" data-field="Loja" data-type="number" tabindex="0" aria-sort="none">Loja</th>
+                                <th class="sortable" data-field="Qtd Inv" data-type="number" tabindex="0" aria-sort="none">Qtd Inv</th>
+                                <th class="sortable" data-field="Valor Inv" data-type="number" tabindex="0" aria-sort="none">Valor Inv</th>
+                                <th class="sortable" data-field="Qtd Pos" data-type="number" tabindex="0" aria-sort="none">Qtd Pos</th>
+                                <th class="sortable" data-field="Valor Pos" data-type="number" tabindex="0" aria-sort="none">Valor Pos</th>
+                                <th class="sortable" data-field="Diff Qtd" data-type="number" tabindex="0" aria-sort="none">Diferença Qtd</th>
+                                <th class="sortable" data-field="Diff Valor" data-type="number" tabindex="0" aria-sort="none">Diferença Valor</th>
+                                <th class="sortable" data-field="Status" data-type="text" tabindex="0" aria-sort="none">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTÓRICO SECTION -->
+        <div id="historicoSection" style="display: none; margin-top: var(--spacing-2xl);">
+            <div class="section card">
+                <h2 class="section-title">Últimas Comparações</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Unidade</th>
+                                <th>Total</th>
+                                <th>Iguais</th>
+                                <th>Diferentes</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historicoBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartResumo = null;
+        let comparacaoAtualId = null;
+        let dadosTabelaAtuais = [];
+        let ordenacaoTabela = { campo: null, direcao: 'ascending' };
+
+        const inventarioInput = document.getElementById('inventarioInput');
+        const posicaoInput = document.getElementById('posicaoInput');
+        const compararBtn = document.getElementById('compararBtn');
+        const limparBtn = document.getElementById('limparBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const unidadeSelect = document.getElementById('unidadeSelect');
+
+        inventarioInput.addEventListener('change', updateFileNames);
+        posicaoInput.addEventListener('change', updateFileNames);
+        compararBtn.addEventListener('click', comparar);
+        limparBtn.addEventListener('click', limpar);
+        downloadBtn.addEventListener('click', downloadExcel);
+        downloadPdfBtn.addEventListener('click', downloadPdf);
+        document.querySelectorAll('#comparisonTable th.sortable').forEach(header => {
+            header.addEventListener('click', () => ordenarTabela(header));
+            header.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    ordenarTabela(header);
+                }
+            });
+        });
+        unidadeSelect.addEventListener('change', () => {
+            loadEstatisticas();
+            loadHistorico();
+        });
+
+        function updateFileNames() {
+            if (inventarioInput.files.length > 0) {
+                document.getElementById('inventarioSelected').textContent = '✓ ' + inventarioInput.files[0].name;
+            }
+            if (posicaoInput.files.length > 0) {
+                document.getElementById('posicaoSelected').textContent = '✓ ' + posicaoInput.files[0].name;
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMessage');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function limpar() {
+            inventarioInput.value = '';
+            posicaoInput.value = '';
+            document.getElementById('inventarioSelected').textContent = '';
+            document.getElementById('posicaoSelected').textContent = '';
+            document.getElementById('resultsSection').style.display = 'none';
+            comparacaoAtualId = null;
+        }
+
+        async function comparar() {
+            const unidade = unidadeSelect.value;
+
+            if (!unidade) {
+                showError('Selecione uma unidade específica para comparar');
+                return;
+            }
+
+            if (!inventarioInput.files.length || !posicaoInput.files.length) {
+                showError('Selecione ambos os arquivos');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('unidade', unidade);
+            formData.append('inventario', inventarioInput.files[0]);
+            formData.append('posicao', posicaoInput.files[0]);
+
+            document.getElementById('loading').classList.add('show');
+            compararBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/comparar', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError(data.erro || 'Erro ao processar');
+                    return;
+                }
+
+                displayResults(data);
+                loadEstatisticas();
+                loadHistorico();
+                showSuccess('Comparação realizada com sucesso!');
+            } catch (error) {
+                showError('Erro: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                compararBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            comparacaoAtualId = data.id || comparacaoAtualId;
+            document.getElementById('resultTotal').textContent = data.total;
+            document.getElementById('resultIguais').textContent = data.iguais;
+            document.getElementById('resultDiferentes').textContent = data.diferentes;
+            document.getElementById('resultTaxa').textContent = formatNum(data.taxa_acuracidade) + '%';
+
+            renderTable(data.dados || []);
+            document.getElementById('resultsSection').style.display = 'block';
+            updateChart(data);
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            })[char]);
+        }
+
+        function renderTable(rows) {
+            dadosTabelaAtuais = [...rows];
+            if (ordenacaoTabela.campo) {
+                dadosTabelaAtuais.sort(comparadorTabela(
+                    ordenacaoTabela.campo,
+                    ordenacaoTabela.tipo,
+                    ordenacaoTabela.direcao
+                ));
+            }
+            renderTableRows();
+        }
+
+        function renderTableRows() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (!dadosTabelaAtuais.length) {
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Nenhum item encontrado.</td></tr>';
+                return;
+            }
+
+            const BADGE_POR_STATUS = {
+                'OK': 'success',
+                'DIFERENCA': 'error',
+                'FALTA NO INVENTARIO': 'warning',
+                'FALTA NA POSICAO': 'info'
+            };
+
+            dadosTabelaAtuais.forEach(row => {
+                const status = String(row.Status || '');
+                const badgeClass = BADGE_POR_STATUS[status] || 'warning';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${escapeHtml(row.Codigo || '-')}</strong></td>
+                    <td>${escapeHtml(row.Descricao || '-')}</td>
+                    <td>${escapeHtml(row.Loja || '-')}</td>
+                    <td>${formatNum(row['Qtd Inv'])}</td>
+                    <td>${formatMoeda(row['Valor Inv'])}</td>
+                    <td>${formatNum(row['Qtd Pos'])}</td>
+                    <td>${formatMoeda(row['Valor Pos'])}</td>
+                    <td>${formatNum(row['Diff Qtd'])}</td>
+                    <td>${formatMoeda(row['Diff Valor'])}</td>
+                    <td><span class="badge badge-${badgeClass}">${escapeHtml(status)}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function comparadorTabela(campo, tipo, direcao) {
+            const multiplicador = direcao === 'ascending' ? 1 : -1;
+
+            return (a, b) => {
+                const valorA = a[campo];
+                const valorB = b[campo];
+                const vazioA = valorA === null || valorA === undefined || valorA === '';
+                const vazioB = valorB === null || valorB === undefined || valorB === '';
+
+                if (vazioA && vazioB) return 0;
+                if (vazioA) return 1;
+                if (vazioB) return -1;
+
+                if (tipo === 'number') {
+                    const numeroA = Number(valorA);
+                    const numeroB = Number(valorB);
+                    return (numeroA - numeroB) * multiplicador;
+                }
+
+                return String(valorA).localeCompare(String(valorB), 'pt-BR', {
+                    sensitivity: 'base',
+                    numeric: true
+                }) * multiplicador;
+            };
+        }
+
+        function ordenarTabela(header) {
+            const campo = header.dataset.field;
+            const tipo = header.dataset.type;
+            const mesmaColuna = ordenacaoTabela.campo === campo;
+            const direcao = mesmaColuna && ordenacaoTabela.direcao === 'ascending'
+                ? 'descending'
+                : 'ascending';
+
+            ordenacaoTabela = { campo, tipo, direcao };
+            document.querySelectorAll('#comparisonTable th.sortable').forEach(item => {
+                item.setAttribute('aria-sort', item === header ? direcao : 'none');
+            });
+
+            dadosTabelaAtuais.sort(comparadorTabela(campo, tipo, direcao));
+            renderTableRows();
+        }
+
+        function formatNum(val) {
+            if (!val && val !== 0) return '-';
+            return parseFloat(val).toFixed(2);
+        }
+
+        function formatMoeda(val) {
+            if (!val && val !== 0) return '-';
+            return parseFloat(val).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        async function downloadExcel() {
+            if (!comparacaoAtualId) {
+                showError('Faça ou carregue uma comparação antes de baixar o Excel.');
+                return;
+            }
+            window.location.href = `/api/download-excel/${comparacaoAtualId}`;
+        }
+
+        function downloadPdf() {
+            if (!comparacaoAtualId) {
+                showError('Faça ou carregue uma comparação antes de baixar o PDF.');
+                return;
+            }
+            window.location.href = `/api/download-pdf/${comparacaoAtualId}`;
+        }
+
+        function updateChart(data) {
+            const ctx = document.getElementById('chartResumo').getContext('2d');
+            if (chartResumo) chartResumo.destroy();
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js não foi carregado; o restante do resultado continua disponível.');
+                return;
+            }
+
+            chartResumo = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Iguais', 'Diferentes'],
+                    datasets: [{
+                        data: [data.iguais || 0, data.diferentes || 0],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderColor: ['white', 'white'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } }
+                }
+            });
+        }
+
+        async function loadEstatisticas() {
+            try {
+                const unidade = unidadeSelect.value;
+                const url = unidade ? `/api/estatisticas?unidade=${encodeURIComponent(unidade)}` : '/api/estatisticas';
+                const response = await fetch(url);
+                const data = await response.json();
+
+                document.getElementById('totalComparacoes').textContent = data.total_comparacoes;
+                document.getElementById('totalIguais').textContent = data.total_itens_iguais;
+                document.getElementById('totalDiferentes').textContent = data.total_itens_diferentes;
+                document.getElementById('taxaMedia').textContent = data.taxa_media.toFixed(1) + '%';
+            } catch (error) {
+                console.log('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        async function loadHistorico() {
+            try {
+                const unidade = unidadeSelect.value;
+                const url = unidade ? `/api/historico?unidade=${encodeURIComponent(unidade)}` : '/api/historico';
+                const response = await fetch(url);
+                const data = await response.json();
+                const tbody = document.getElementById('historicoBody');
+                tbody.innerHTML = '';
+
+                if (data.length > 0) {
+                    data.forEach(row => {
+                        const date = new Date(row.data).toLocaleString('pt-BR');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${date}</td>
+                            <td>${row.unidade}</td>
+                            <td>${row.total}</td>
+                            <td>${row.iguais}</td>
+                            <td>${row.diferentes}</td>
+                            <td><button class="btn btn-ghost btn-sm" onclick="carregarComparacao(${row.id})">Ver</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('historicoSection').style.display = 'block';
+                } else {
+                    document.getElementById('historicoSection').style.display = 'none';
+                }
+            } catch (error) {
+                console.log('Erro ao carregar histórico:', error);
+            }
+        }
+
+        async function aplicarFiltros() {
+            if (!comparacaoAtualId) {
+                showError('Faça ou carregue uma comparação antes de aplicar filtros.');
+                return;
+            }
+
+            const params = new URLSearchParams({ comparacao_id: comparacaoAtualId });
+            const status = document.getElementById('filtroStatus').value;
+            const descricao = document.getElementById('filtroDescricao').value.trim();
+            if (status) params.set('status', status);
+            if (descricao) params.set('descricao', descricao);
+
+            try {
+                const response = await fetch(`/api/comparacoes-filtrado?${params.toString()}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao aplicar filtros');
+                renderTable(data);
+                showSuccess(`${data.length} item(ns) encontrado(s).`);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function carregarComparacao(id) {
+            try {
+                const response = await fetch(`/api/comparacao/${id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro || 'Erro ao carregar comparação');
+
+                data.taxa_acuracidade = data.total > 0 ? (data.iguais / data.total * 100) : 0;
+                displayResults(data);
+                showSuccess('Comparação carregada com sucesso.');
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Inicializar
+        loadEstatisticas();
+        loadHistorico();
+    </script>
+
+    <!-- THEME MANAGER -->
+    <script src="{{ url_for('static', filename='js/themes.js') }}"></script>
+</body>
+</html>
