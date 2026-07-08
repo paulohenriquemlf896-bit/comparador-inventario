@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sobe o Comparador de Inventário em produção com waitress (porta 6000).
+# Sobe o Comparador de Inventário em produção com waitress (porta 8080).
 set -e
 cd "$(dirname "$0")"
 
@@ -16,5 +16,5 @@ fi
 venv/bin/python3 -c "
 from waitress import serve
 from app import app
-serve(app, host='0.0.0.0', port=6000)
+serve(app, host='0.0.0.0', port=8080)
 "
