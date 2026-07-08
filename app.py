@@ -50,6 +50,9 @@ if not app.secret_key:
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
+def extensao_permitida(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -880,6 +883,9 @@ def api_comparar():
 
         if inv_file.filename == '' or pos_file.filename == '':
             return jsonify({'erro': 'Selecione ambos os arquivos'}), 400
+
+        if not extensao_permitida(inv_file.filename) or not extensao_permitida(pos_file.filename):
+            return jsonify({'erro': 'Apenas arquivos .xlsx ou .xls são aceitos'}), 400
 
         inv_path = os.path.join(UPLOAD_FOLDER, secure_filename('inv_temp.xlsx'))
         pos_path = os.path.join(UPLOAD_FOLDER, secure_filename('pos_temp.xlsx'))
